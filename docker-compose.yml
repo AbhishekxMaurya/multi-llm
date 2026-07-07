@@ -1,0 +1,68 @@
+services:
+  # 1. The Database
+  opensearch:
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch-local
+    environment:
+      - cluster.name=gateway-cluster
+      - discovery.type=single-node
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=GatewayAdmin123!@#
+    ports:
+      - "9200:9200"
+    networks:
+      - gateway-net
+
+  # 2. The Database UI
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:latest
+    container_name: opensearch-dashboards-local
+    ports:
+      - "5601:5601"
+    environment:
+      - OPENSEARCH_HOSTS=http://opensearch:9200
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    depends_on:
+      - opensearch
+    networks:
+      - gateway-net
+
+  # 3. The FastAPI Backend
+  gateway:
+    image: python:3.11-slim
+    container_name: gateway-api
+    working_dir: /app
+    volumes:
+      - ../:/app
+    command: bash -c "pip install -r requirements.txt && python main.py"
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENSEARCH_HOST=opensearch
+      - OPENSEARCH_PORT=9200
+    env_file:
+      - ../.env
+    depends_on:
+      - opensearch
+    networks:
+      - gateway-net
+
+  # 4. The Streamlit Frontend
+  ui:
+    image: python:3.11-slim
+    container_name: gateway-ui
+    working_dir: /app
+    volumes:
+      - ../:/app
+    command: bash -c "pip install -r requirements.txt streamlit && streamlit run ui.py --server.port 8501 --server.address 0.0.0.0"
+    ports:
+      - "8501:8501"
+    depends_on:
+      - gateway
+    networks:
+      - gateway-net
+
+networks:
+  gateway-net:
+    driver: bridge
