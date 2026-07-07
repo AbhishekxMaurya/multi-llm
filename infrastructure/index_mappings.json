@@ -1,0 +1,26 @@
+{
+    "settings": {
+      "index": {
+        "number_of_shards": 1,
+        "number_of_replicas": 0
+      }
+    },
+    "mappings": {
+      "properties": {
+        "request_id": { "type": "keyword" },
+        "timestamp": { "type": "date" },
+        "latency_ms": { "type": "float" },
+        "user_prompt_length": { "type": "integer" },
+        "requested_model": { "type": "keyword" },
+        "routed_model": { "type": "keyword" },
+        "provider_used": { "type": "keyword" },
+        "input_tokens": { "type": "integer" },
+        "output_tokens": { "type": "integer" },
+        "total_tokens": { "type": "integer" },
+        "estimated_cost_usd": { "type": "float" },
+        "circuit_breaker_tripped": { "type": "boolean" },
+        "fallback_triggered": { "type": "boolean" },
+        "error_message": { "type": "text" }
+      }
+    }
+  }
